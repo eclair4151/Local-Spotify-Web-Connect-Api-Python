@@ -17,3 +17,5 @@ Copy and paste that url back into the terminal to complete authorization. <br><b
 
 Now you can just call the provided script methods to play, pause, set the volume, get devices and playlists.<br>
 This authorization flow works for the rest of the api as well so feel free to browse around https://developer.spotify.com/documentation/web-api/reference/ to see what other api endpoints you can add to the script.
+<br><br>
+This script will also handle the refresh token for you. Every time you call a command it will check if the current token is expired and if it is, it automagicly use the refresh token and gets a valid access_token before the command is called

@@ -7,37 +7,47 @@ from constants import *
 
 
 def authorize(auth_code=None):
+
+    payload = {'redirect_uri':'http://localhost', 'client_id': SPOTIFY_CLIENT_ID, 'client_secret': SPOTIFY_CLIENT_SECRET}
+
     if auth_code is None:
         #CHANGE SCOPES HERE
         scopes = ["user-modify-playback-state", "user-read-playback-state", "playlist-read-private", "playlist-read-collaborative", "streaming"]
 
-        print("Go to the following url, and after clicking ok, copy and paste the link you are redirected to from your browser starting with 'localhost'\n")
+        print("\n\nGo to the following url, and after clicking ok, copy and paste the link you are redirected to from your browser starting with 'localhost'\n")
         print("https://accounts.spotify.com/authorize/?client_id=" + SPOTIFY_CLIENT_ID + "&response_type=code&redirect_uri=http://localhost&scope=" + "%20".join(scopes))
 
         url = input("\nPaste localhost url: ")
         parsed_url = urlparse(url)
-        auth_code = parsed_url.query.split('=')[1]
+        payload['grant_type'] = 'authorization_code'
+        payload['code'] = parsed_url.query.split('=')[1]
+        auth_code = {}
 
-    payload = {'grant_type': 'authorization_code', 'code': auth_code, 'redirect_uri':'http://localhost', 'client_id': SPOTIFY_CLIENT_ID, 'client_secret': SPOTIFY_CLIENT_SECRET}
+    else:
+        payload['grant_type'] = 'refresh_token'
+        payload['refresh_token'] = auth_code["refresh_token"]
+
+
     result = requests.post("https://accounts.spotify.com/api/token", data=payload)
 
     response_json = result.json()
     cur_seconds = time.time()
-    response_json['expires_at'] = cur_seconds + response_json["expires_in"] - 60
+    auth_code['expires_at'] = cur_seconds + response_json["expires_in"] - 60
+    auth_code['access_token'] = response_json["access_token"]
+
+    if "refresh_token" in response_json:
+        auth_code['refresh_token'] = response_json["refresh_token"]
+
     with open('auth.json', 'w') as outfile:
-        json.dump(response_json, outfile)
-    return response_json
+        json.dump(auth_code, outfile)
+    return auth_code
 
 
 def get_valid_auth_header():
     with open('auth.json', 'r') as infile:
         auth = json.load(infile)
     if time.time() > auth["expires_at"]:
-        auth = authorize(auth["refresh_token"])
-        cur_seconds = time.time()
-        auth['expires_at'] = cur_seconds + auth["expires_in"] - 60
-        with open('auth.json', 'w') as outfile:
-            json.dump(auth, outfile)
+        auth = authorize(auth)
     return {"Authorization": "Bearer " + auth["access_token"]}
 
 
@@ -116,7 +126,4 @@ if not os.path.isfile('auth.json'):
 # set_device_volume(30)
 # pause_active_music()
 
-
-#play_on_device(device_id='636c557009757a9ef284656942ccc42fa5ec466f', context_uri='spotify:user:12158782677:playlist:3yarNTAIbBCLS93KZqkjDK')
-
-print('end')
+#print('')

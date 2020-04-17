@@ -1,5 +1,6 @@
 # Local Spotify Web Connect Api Python
-a simple python script that allows you to control playback of spotify connect without the need of a local server
+a simple python script that allows you to control playback of spotify connect without the need of a local server<br>
+Spotify Documentation: https://developer.spotify.com/documentation/web-api/guides/using-connect-web-api/
 
 ## How To Use
 Follow these instructions to create a spotify app<br>
